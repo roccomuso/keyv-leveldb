@@ -12,7 +12,7 @@ class KeyvLevelDB extends EventEmitter {
     this.opts = Object.assign(
       {},
 			{uri: typeof uri === 'undefined' ? 'leveldb://:memory:' : uri},
-			(typeof uri === 'object') ? {...uri} : {},
+			(typeof uri === 'object') ? uri : {},
       opts);
 
     const lvlCheck = new RegExp(/^leveldb:\/\//)
@@ -42,6 +42,7 @@ class KeyvLevelDB extends EventEmitter {
       this.leveldb.get(key, { asBuffer: false }).then(value => {
         resolve(value);
       }).catch(err => {
+				// console.log(err.type)
       	if (err.notFound) {
           resolve(undefined);
       	} else {
@@ -68,19 +69,26 @@ class KeyvLevelDB extends EventEmitter {
 	}
 
 	clear() {
-		return this.leveldb.close().then(new Promise((resolve, reject) => {
+		return new Promise((resolve, reject) => {
       if (this.opts.db !== ':memory:') {
-        leveldown.destroy(this.opts.db, err => {
-        	if (err) {
-            reject(err);
-        	}
-          resolve(this.leveldb.open());
-        });
+				this.leveldb.once('closed', () => {
+					leveldown.destroy(this.opts.db, err => {
+						if (err) {
+							reject(err);
+						}
+						this.leveldb.once('ready', ()=>{
+							resolve()
+						})
+						this.leveldb.open().catch(reject)
+					});
+				});
+				this.leveldb.close()
       } else {
+				this.leveldb.close()
         this.leveldb = levelup(memdown(), this.opts)
 				resolve()
       }
-		}))
+		})
 	}
 }
 
