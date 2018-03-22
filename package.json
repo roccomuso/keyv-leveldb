@@ -4,7 +4,8 @@
   "description": "LevelDB storage adapter for Keyv",
   "main": "src/index.js",
   "scripts": {
-    "test": "nyc ava"
+    "test": "nyc ava",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "repository": {
     "type": "git",
@@ -36,7 +37,6 @@
     "ava": "^0.25.0",
     "coveralls": "^3.0.0",
     "delay": "^2.0.0",
-    "eslint-config-xo-lukechilds": "^1.0.0",
     "keyv": "*",
     "nyc": "^11.0.3",
     "requirable": "^1.0.4",
